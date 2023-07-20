@@ -1,5 +1,6 @@
 #!/usr/bin/env 
 import pandas as pd
+import numpy as np
 
 # uncertainties in production XS, taken from https://gitlab.cern.ch/cms-b2g/diboson-combination/combination-2016/-/blob/master/theory.py#L27-32
 THEORY = {}
@@ -54,9 +55,24 @@ for mm, mass in enumerate(THEORY['W']['central'].keys()) :
     ]
 
 df = df.sort_values(by=["mass"])   
-#print(df)
-df.to_csv("13TeV/HVTB_XS.csv")
 
+df['CX0_up'] =   (1 + np.sqrt(df['CX0_PDF+']*df['CX0_PDF+'] + df['CX0_QCD+']*df['CX0_QCD+']) )*df['CX0(pb)']
+df['CX0_down'] = (1- np.sqrt(df['CX0_PDF-']*df['CX0_PDF-'] + df['CX0_QCD-']*df['CX0_QCD-']))*df['CX0(pb)']
+
+df['CX+-_up'] = (1 + np.sqrt(df['CX+-_PDF+']*df['CX+-_PDF+'] + df['CX+-_QCD+']*df['CX+-_QCD+']) )*(df['CX+(pb)'] + df['CX-(pb)'])
+df['CX+-_down'] = (1 - np.sqrt(df['CX+-_PDF-']*df['CX+-_PDF-'] + df['CX+-_QCD-']*df['CX+-_QCD-']))*(df['CX+(pb)'] + df['CX-(pb)'])
+
+print(df[['CX0(pb)', 'CX0_down', 'CX0_up']])
+
+#'CX0_up', 'CX0_down'
+#'CX+-_up' 'CX+-_down'
+print("File to HVTB has keys", df.keys())
+print("File to HVTB has masses", df["mass"].values)
+
+df.to_csv("13TeV/HVTB_XS.csv", index=False)
+
+df['CX+-(pb)'] = df['CX+(pb)'] + df['CX-(pb)'] 
+print(df[['CX+-(pb)', 'CX+-_down', 'CX+-_up']])
 #########################
 #########################
 
@@ -78,10 +94,10 @@ df_HVTC = pd.DataFrame(
         'Wprime_cH1', 
         'Wprime_cH1_Up', 
         'Wprime_cH1_Down', 
-        'WH', 
-        'WW', 
-        'ZH', 
-        'WZ',
+        "WH", 
+        "WW", 
+        "ZH", 
+        "WZ",
         )
     )
 
@@ -106,5 +122,10 @@ for mm, mass in enumerate(THEORY_HVTC.keys()) :
     THEORY_HVTC[mass]['BRWZ'],
     ]
 
-df_HVTC = df_HVTC.sort_values(by=["mass"])   
-df_HVTC.to_csv("13TeV/HVTC_XS.csv")
+df_HVTC = df_HVTC.sort_values(by=["mass"])
+
+
+print(df_HVTC[['Wprime_cH3', 'Wprime_cH3_Down', 'Wprime_cH3_Up']])
+print("File to HVTC has keys", df_HVTC.keys())   
+print("File to HVTC has masses", df_HVTC["mass"].values)
+df_HVTC.to_csv("13TeV/HVTC_XS.csv", index=False)
