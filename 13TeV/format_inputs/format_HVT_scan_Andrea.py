@@ -11,61 +11,139 @@ import matplotlib.pyplot as plt
 import mplhep as hep
 import glob
 
+filter_gH_1 = np.arange(start=-8, stop=8, step=0.5)
+filter_gH_2 = np.arange(start=-4, stop=4, step=0.1)
+filter_gH_3 = np.arange(start=-1, stop=1, step=0.01)
+filter_gH = np.unique(np.concatenate((filter_gH_1,filter_gH_2,filter_gH_3),0))
 
+print(len(filter_gH), np.around(filter_gH,2))
+#[-8.0, -7.5, -7.0, -6.5, -6.0, -5.5, -5.0, -4.5, -4.0, -3.9, -3.8, -3.7, -3.6, -3.5, -3.4, -3.3, -3.2, -3.1, -3.0, -2.9, -2.8, -2.7, -2.6, -2.5, -2.4, -2.3, -2.2, -2.1, -2.0, -1.9, -1.8, -1.7, -1.6, -1.5, -1.4, -1.3, -1.2, -1.1, -1.0, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, -0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0]
+filter_gH = np.around(filter_gH,2)
+
+df_BR_total = pd.DataFrame()
+df_mod_C_BR_total = pd.DataFrame()
 df_mod_B_BR_total = pd.DataFrame()
+df_mod_A_BR_total = pd.DataFrame()
+
 for particle in ["Z", "W"]: # 
-    df_mod_B_BR = pd.DataFrame()
+    df_BR = pd.DataFrame()
     name = 'HVT/BRs/BRs_%sprime.csv' % (particle)
     print(name)
     df_local = pd.read_csv(name)
-    df_local["gH"] = round(df_local["gv"]*df_local["ch"], 1)
-    df_local["gF"] = round(df_local["g"]*df_local["g"]*df_local["cl"]/df_local["gv"], 2)
+    
+    #df_part = df_local[(abs(df_local["gH"]) > 1 )]
+    df_local["gH"] = round(df_local["gv"]*df_local["ch"], 3)
+    #df_local[(abs(df_local["gH"]) > 0.5)]["gH"] = round(df_local[(abs(df_local["gH"]) > 0.5)]["gH"], 1)
+
+    df_local["gF"] = round(df_local["g"]*df_local["g"]*df_local["cl"]/df_local["gv"], 3)
+    # make specific tables to model A / B / C
+    #remove
+    #Model A: 'gh':-0.556, 'gf':-0.562
+    #Model B: 'gh':-2.928, 'gf':0.146
+    #Model C: gF = 0 
+    df_mod_C_BR = df_local[df_local['gH'].isin([1]) & df_local['gF'].isin([0])]
+    df_mod_B_BR = df_local[df_local['gH'].isin([-2.928]) & df_local['gF'].isin([0.146])]
+    df_mod_A_BR = df_local[df_local['gH'].isin([-0.556]) & df_local['gF'].isin([-0.562])]
+
+    # drom model A/B for table for 2D
+    df_local = df_local[~df_local['gF'].isin([-0.562, 0.146])]
+    df_local = df_local[~df_local['gH'].isin([-2.93, -2.92, -0.56, -0.55])]
+
+    # drop glanularity where we do not need
+    #df_local = df_local[df_local['gH'].isin(filter_gH)]
+
     if particle == "Z" :
         df_local["Zp_dijet"] = df_local[['BRuu', 'BRdd', 'BRcc', 'BRss']].sum(axis=1)  
         df_local["ll"] = df_local[['BRee', 'BRmumu']].sum(axis=1) 
     else:
         df_local["Wp_dijet"] = df_local[['BRud', 'BRus', 'BRcd', 'BRcs']].sum(axis=1)  
         df_local["lv"] = df_local[['BReve', 'BRmvm']].sum(axis=1) 
-    print(df_local.columns)
+    #print(df_local.columns)
     # Z' 
     # 'M0', 'g', 'gv', 'ch', 'cl', 'GammaTot', 'BRWW', 'BRhZ', 'BRee', 'BRmumu', 'BRtautau', 'BRnunu', 'BRuu', 'BRdd', 'BRcc', 'BRss', 'BRbb', 'BRtt', 'BRll', 'BRqq', 'BRjets'
     # W' 
     # 'M0', 'g', 'gv', 'ch', 'cl', 'GammaTot', 'BRWH', 'BRWZ', 'BReve', 'BRmvm', 'BRtauvt', 'BRud', 'BRus', 'BRcd', 'BRcs', 'BRtb', 'BRlnu', 'BRqqbar', 'BRjets'
     gF_list_anal = sorted(list(set(list((df_local['gF'].values)))))
     gH_list_anal = sorted(np.around(list(set(list((df_local['gH'].values)))),2))
-    print(gF_list_anal, len(gF_list_anal))
-    print(gH_list_anal, len(gH_list_anal))
+    #print(gF_list_anal, len(gF_list_anal))
+    #print(gH_list_anal, len(gH_list_anal))
 
-    df_local.rename({
-        'BRhZ': 'ZH', 
-        'BRWH': 'WH', 
-        'BRWW' : 'WW',
-        'BRWZ' : 'WZ',
-        'BRtautau' : 'tautau',
-        'BRnunu' : "vv",
-        'BRtt' : 'tt',
-        'BRtb' : "tb",
-        "GammaTot" : "GammaTot%sp" % particle,
-        }, axis=1, inplace=True)
-    
-    df_local["gH_mod_X_sign_gF"] = ((df_local['gF'].apply(func = lambda x : 1 if not x else -1)))*df_local["gH"]
-    df_local["gF_mod"] = abs(df_local['gF'])
-    df_local = df_local.drop(columns=[ "g", "gv",  "ch", "cl", "BRjets", "gH", "gF"])
-    print(df_local.columns)
+    for dataframes in (df_local, df_mod_C_BR, df_mod_B_BR, df_mod_A_BR) :
+        print(particle)
 
-    df_local = df_local.drop_duplicates(subset=["gH_mod_X_sign_gF", "gF_mod", 'M0'])
+        if particle == "Z" :
+            dataframes["Zp_dijet"] = dataframes[['BRuu', 'BRdd', 'BRcc', 'BRss']].sum(axis=1)  
+            dataframes["ll"] = dataframes[['BRee', 'BRmumu']].sum(axis=1) 
+        else:
+            dataframes["Wp_dijet"] = dataframes[['BRud', 'BRus', 'BRcd', 'BRcs']].sum(axis=1)  
+            dataframes["lv"] = dataframes[['BReve', 'BRmvm']].sum(axis=1) 
 
-    if len(df_mod_B_BR_total) == 0:
-        df_mod_B_BR_total = df_local
+        dataframes.rename({
+            'BRhZ': 'ZH', 
+            'BRWH': 'WH', 
+            'BRWW' : 'WW',
+            'BRWZ' : 'WZ',
+            'BRtautau' : 'tautau',
+            'BRtauvt' : 'tauvt',
+            'BRnunu' : "vv",
+            'BRtt' : 'tt',
+            'BRtb' : "tb",
+            "GammaTot" : "GammaTot%sp" % particle,
+            }, axis=1, inplace=True)
+
+        
+        dataframes["gH_mod_X_sign_gF"] = ((dataframes['gF'].apply(func = lambda x : 1 if not x else -1)))*dataframes["gH"]
+        dataframes["gF_mod"] = abs(dataframes['gF'])
+        dataframes = dataframes.drop(columns=[ "g", "gv",  "ch", "cl", "BRjets", "gH", "gF"])
+        #print(df_local.columns)
+
+        dataframes = dataframes.drop_duplicates(subset=["gH_mod_X_sign_gF", "gF_mod", 'M0'])
+
+        if particle == "Z" :
+            dataframes = dataframes.drop(columns=[ 'BRuu', 'BRdd', 'BRcc', 'BRss', 'BRee',  'BRmumu'])
+        else:
+            dataframes = dataframes.drop(columns=[ 'BReve', 'BRmvm', 'BRlnu', 'BRqqbar', 'BRud', 'BRus', 'BRcd','BRcs'])
+
+
+    if len(df_BR_total) == 0:
+        df_BR_total = df_local
+        df_mod_C_BR_total = df_mod_C_BR
+        df_mod_B_BR_total = df_mod_B_BR
+        df_mod_A_BR_total = df_mod_A_BR
     else:
-        df_mod_B_BR_total = df_mod_B_BR_total.merge(df_local, on=["gH_mod_X_sign_gF", "gF_mod", 'M0']).fillna(method='ffill')
+        df_BR_total = df_BR_total.merge(df_local, on=["gH_mod_X_sign_gF", "gF_mod", 'M0']).fillna(method='ffill')
+        df_mod_C_BR_total = df_mod_C_BR_total.merge(df_mod_C_BR, on=["gH_mod_X_sign_gF", "gF_mod", 'M0']).fillna(method='ffill')
+        df_mod_B_BR_total = df_mod_B_BR_total.merge(df_mod_B_BR, on=["gH_mod_X_sign_gF", "gF_mod", 'M0']).fillna(method='ffill')
+        df_mod_A_BR_total = df_mod_A_BR_total.merge(df_mod_A_BR, on=["gH_mod_X_sign_gF", "gF_mod", 'M0']).fillna(method='ffill')
 
-df_mod_B_BR_total["GoM"] = df_mod_B_BR_total["GammaTotWp"]/df_mod_B_BR_total["M0"]
+for dataframes in [df_BR_total, df_mod_C_BR_total, df_mod_B_BR_total, df_mod_A_BR_total]:
+    dataframes["mass"] = dataframes["M0"]/1000
+    dataframes["GoM"] = dataframes["GammaTotWp"]/dataframes["M0"]
 
-df_mod_B_BR_total = df_mod_B_BR_total.drop(columns=[ 'BRuu', 'BRdd', 'BRcc', 'BRss', 'BReve', 'BRmvm', 'BRlnu', 'BRqqbar', 'BRee',  'BRmumu'])
+#df_BR_total["GoM"] = df_BR_total["GammaTotWp"]/df_BR_total["M0"]
+#df_mod_C_BR_total["GoM"] = df_mod_C_BR_total["GammaTotWp"]/df_mod_C_BR_total["M0"]
+#df_mod_B_BR_total["GoM"] = df_mod_B_BR_total["GammaTotWp"]/df_mod_B_BR_total["M0"]
+#df_mod_A_BR_total["GoM"] = df_mod_A_BR_total["GammaTotWp"]/df_mod_A_BR_total["M0"]
 
+
+#print(df_BR_total)
+#print(df_BR_total.columns)
+df_BR_total.to_csv("HVT_BRs.csv", index=False)
+
+print("Model C")
+print(df_mod_C_BR)
+df_mod_C_BR_total.to_csv("HVT_modelC_BRs.csv", index=False)
+print(df_mod_C_BR_total.columns)
+
+print("Model B")
 print(df_mod_B_BR_total)
+df_mod_B_BR_total.to_csv("HVT_modelB_BRs.csv", index=False)
 print(df_mod_B_BR_total.columns)
-df_mod_B_BR_total.to_csv("HVT_BRs.csv", index=False)
 
-print(len(df_mod_B_BR_total[(df_mod_B_BR_total["M0"] == 2000)]))
+print("Model A")
+print(df_mod_A_BR_total)
+df_mod_A_BR_total.to_csv("HVT_modelA_BRs.csv", index=False)
+print(df_mod_A_BR_total.columns)
+
+print(len(df_BR_total[(df_BR_total["M0"] == 2000)]))
+print(df_BR_total.columns)
