@@ -24,6 +24,8 @@ df_BR_total = pd.DataFrame()
 df_mod_C_BR_total = pd.DataFrame()
 df_mod_B_BR_total = pd.DataFrame()
 df_mod_A_BR_total = pd.DataFrame()
+df_mod_gf3o5_BR_total = pd.DataFrame()
+df_mod_gf0o1_BR_total = pd.DataFrame()
 
 for particle in ["Z", "W"]: # 
     df_BR = pd.DataFrame()
@@ -44,10 +46,14 @@ for particle in ["Z", "W"]: #
     df_mod_C_BR = df_local[df_local['gH'].isin([1]) & df_local['gF'].isin([0])]
     df_mod_B_BR = df_local[df_local['gH'].isin([-2.928]) & df_local['gF'].isin([0.146])]
     df_mod_A_BR = df_local[df_local['gH'].isin([-0.556]) & df_local['gF'].isin([-0.562])]
+    df_mod_gf3o5_BR = df_local[df_local['gH'].isin([0.5]) & df_local['gF'].isin([0.35])]
+    df_mod_gf0o1_BR = df_local[df_local['gH'].isin([0.6]) & df_local['gF'].isin([0.1])]
 
     # drom model A/B for table for 2D
     df_local = df_local[~df_local['gF'].isin([-0.562, 0.146])]
-    df_local = df_local[~df_local['gH'].isin([-2.93, -2.92, -0.56, -0.55])]
+
+    df_local = df_local[~df_local['gH'].isin([-2.928, -0.556])]
+    #df_local = df_local[~df_local['gH'].isin([-2.93, 2.93,  2.92,  3.0, -0.56, -0.55])]
 
     # drop glanularity where we do not need
     #df_local = df_local[df_local['gH'].isin(filter_gH)]
@@ -68,7 +74,7 @@ for particle in ["Z", "W"]: #
     #print(gF_list_anal, len(gF_list_anal))
     #print(gH_list_anal, len(gH_list_anal))
 
-    for dataframes in (df_local, df_mod_C_BR, df_mod_B_BR, df_mod_A_BR) :
+    for dataframes in (df_local, df_mod_C_BR, df_mod_B_BR, df_mod_A_BR, df_mod_gf3o5_BR, df_mod_gf0o1_BR) :
         print(particle)
 
         if particle == "Z" :
@@ -110,15 +116,20 @@ for particle in ["Z", "W"]: #
         df_mod_C_BR_total = df_mod_C_BR
         df_mod_B_BR_total = df_mod_B_BR
         df_mod_A_BR_total = df_mod_A_BR
+        df_mod_gf3o5_BR_total = df_mod_gf3o5_BR
+        df_mod_gf0o1_BR_total = df_mod_gf0o1_BR
     else:
         df_BR_total = df_BR_total.merge(df_local, on=["gH_mod_X_sign_gF", "gF_mod", 'M0']).fillna(method='ffill')
         df_mod_C_BR_total = df_mod_C_BR_total.merge(df_mod_C_BR, on=["gH_mod_X_sign_gF", "gF_mod", 'M0']).fillna(method='ffill')
         df_mod_B_BR_total = df_mod_B_BR_total.merge(df_mod_B_BR, on=["gH_mod_X_sign_gF", "gF_mod", 'M0']).fillna(method='ffill')
         df_mod_A_BR_total = df_mod_A_BR_total.merge(df_mod_A_BR, on=["gH_mod_X_sign_gF", "gF_mod", 'M0']).fillna(method='ffill')
+        df_mod_gf3o5_BR_total = df_mod_gf3o5_BR_total.merge(df_mod_gf3o5_BR, on=["gH_mod_X_sign_gF", "gF_mod", 'M0']).fillna(method='ffill')
+        df_mod_gf0o1_BR_total = df_mod_gf0o1_BR_total.merge(df_mod_gf0o1_BR, on=["gH_mod_X_sign_gF", "gF_mod", 'M0']).fillna(method='ffill')
 
-for dataframes in [df_BR_total, df_mod_C_BR_total, df_mod_B_BR_total, df_mod_A_BR_total]:
+for dataframes in [df_BR_total, df_mod_C_BR_total, df_mod_B_BR_total, df_mod_A_BR_total, df_mod_gf3o5_BR_total, df_mod_gf0o1_BR_total]:
     dataframes["mass"] = dataframes["M0"]/1000
     dataframes["GoM"] = dataframes["GammaTotWp"]/dataframes["M0"]
+    dataframes["dijet"] = dataframes["Zp_dijet"]
 
 #df_BR_total["GoM"] = df_BR_total["GammaTotWp"]/df_BR_total["M0"]
 #df_mod_C_BR_total["GoM"] = df_mod_C_BR_total["GammaTotWp"]/df_mod_C_BR_total["M0"]
@@ -144,6 +155,16 @@ print("Model A")
 print(df_mod_A_BR_total)
 df_mod_A_BR_total.to_csv("HVT_modelA_BRs.csv", index=False)
 print(df_mod_A_BR_total.columns)
+
+print("Model gf=3.5")
+print(df_mod_gf3o5_BR_total)
+df_mod_gf3o5_BR_total.to_csv("HVT_model_gf_3o5_BRs.csv", index=False)
+print(df_mod_gf3o5_BR_total.columns)
+
+print("Model gf=3.5")
+print(df_mod_gf0o1_BR_total)
+df_mod_gf0o1_BR_total.to_csv("HVT_model_gf_0o1_BRs.csv", index=False)
+print(df_mod_gf0o1_BR_total.columns)
 
 print(len(df_BR_total[(df_BR_total["M0"] == 2000)]))
 print(df_BR_total.columns)
