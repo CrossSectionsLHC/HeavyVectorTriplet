@@ -60,10 +60,14 @@ for particle in ["Z", "W"]: #
 
     if particle == "Z" :
         df_local["Zp_dijet"] = df_local[['BRuu', 'BRdd', 'BRcc', 'BRss']].sum(axis=1)  
-        df_local["ll"] = df_local[['BRee', 'BRmumu']].sum(axis=1) 
+        df_local["ll"] = df_local[['BRee', 'BRmumu']].sum(axis=1)
+        df_local['Zp_VVVH'] = df_local[['BRWW', 'BRhZ']].sum(axis=1) 
     else:
         df_local["Wp_dijet"] = df_local[['BRud', 'BRus', 'BRcd', 'BRcs']].sum(axis=1)  
         df_local["lv"] = df_local[['BReve', 'BRmvm']].sum(axis=1) 
+        df_local['Wp_VVVH'] = df_local[['BRWZ', 'BRWH']].sum(axis=1)
+    
+    df_local['Vp_VVVH'] = df_local[['Zp_VVVH', 'Wp_VVVH']].sum(axis=1) / 2 # average of Zp_VVVH and Wp_VVVH 
     #print(df_local.columns)
     # Z' 
     # 'M0', 'g', 'gv', 'ch', 'cl', 'GammaTot', 'BRWW', 'BRhZ', 'BRee', 'BRmumu', 'BRtautau', 'BRnunu', 'BRuu', 'BRdd', 'BRcc', 'BRss', 'BRbb', 'BRtt', 'BRll', 'BRqq', 'BRjets'
@@ -80,9 +84,13 @@ for particle in ["Z", "W"]: #
         if particle == "Z" :
             dataframes["Zp_dijet"] = dataframes[['BRuu', 'BRdd', 'BRcc', 'BRss']].sum(axis=1)  
             dataframes["ll"] = dataframes[['BRee', 'BRmumu']].sum(axis=1) 
+            dataframes['Zp_VVVH'] = dataframes[['BRWW', 'BRhZ']].sum(axis=1)
         else:
             dataframes["Wp_dijet"] = dataframes[['BRud', 'BRus', 'BRcd', 'BRcs']].sum(axis=1)  
             dataframes["lv"] = dataframes[['BReve', 'BRmvm']].sum(axis=1) 
+            dataframes['Wp_VVVH'] = dataframes[['BRWH', 'BRWZ']].sum(axis=1)
+        
+        dataframes['Vp_VVVH'] = dataframes[['Zp_VVVH', 'Wp_VVVH']].sum(axis=1) / 2 # average of Zp_VVVH and Wp_VVVH
 
         dataframes.rename({
             'BRhZ': 'ZH', 
